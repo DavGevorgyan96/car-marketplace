@@ -18,7 +18,7 @@ export default async function Home({ searchParams }: Props) {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Автомобили Kia</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Автомобили</h1>
       <Suspense fallback={<Loader />}>
         <CarsGrid page={page} sort={sort} />
       </Suspense>
