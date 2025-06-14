@@ -1,5 +1,12 @@
 import { Car, CarsResponse } from "@/types/cars";
 
+const getBaseUrl = (): string => {
+  if (!process.env.BASE_URL) {
+    throw new Error("Missing BASE_URL environment variable");
+  }
+  return process.env.BASE_URL;
+};
+
 export const fetchCars = async (
   page: number = 1,
   sort?: "asc" | "desc"
@@ -14,27 +21,31 @@ export const fetchCars = async (
     params.append("_order", sort);
   }
 
-  const isServer = typeof window === "undefined";
-  const baseUrl = isServer
-    ? process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-    : "";
+  const baseUrl = getBaseUrl();
 
-  const response = await fetch(`${baseUrl}/api/cars?${params.toString()}`);
+  const response = await fetch(`${baseUrl}/api/cars?${params.toString()}`, {
+    // SSR fetch — отключаем кэш (особенно важно на Vercel)
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch cars");
+    throw new Error(`Failed to fetch cars. Status: ${response.status}`);
   }
 
   return response.json();
 };
 
-export async function fetchCarById(uniqueId: string): Promise<Car> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/cars/${uniqueId}`);
+export const fetchCarById = async (uniqueId: string): Promise<Car> => {
+  const baseUrl = getBaseUrl();
 
-  if (!res.ok) throw new Error("Car not found");
+  const res = await fetch(`${baseUrl}/api/cars/${uniqueId}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Car not found. Status: ${res.status}`);
+  }
 
   const json = await res.json();
-
   return json?.data?.[0];
-}
+};
